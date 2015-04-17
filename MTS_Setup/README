@@ -1,0 +1,23 @@
+1) Install 'wvdial' package
+2) Setup /etc/wvdial.conf as follows, 
+
+
+[Dialer cdma]
+Stupid Mode = 1
+Inherits = Modem0
+Password = MTS 
+Username = internet@internet.mtsindia.in
+Phone = <pass>
+
+[Modem0]
+Init1 = ATZ
+SetVolume = 0
+Modem = /dev/ttyUSB0
+Baud = 115200
+FlowControl = Hardware (CRTSCTS)
+Dial Command = ATDT
+
+
+3) Set an alias to call the wvdial process in background,
+
+alias mblaze="screen -dmS mblaze bash -c '/usr/bin/wvdial cdma'"
