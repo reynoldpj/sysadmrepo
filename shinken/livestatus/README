@@ -1,0 +1,66 @@
+===============================================================
+README.txt
+===============================================================
+
+==> Requirements:
+	1) Python 2.7
+	2) LiveStatus module is loaded in shinken. To verify this follow the steps pasted below,
+
+	------------------------
+	root@shinken:~# grep -irl livestatus /usr/local/shinken/etc/
+	/usr/local/shinken/etc/shinken-specific-windows.cfg
+	/usr/local/shinken/etc/shinken-specific.cfg
+	root@shinken:~# 
+	root@shinken:~# grep -A2 -B4 "module_name Livestatus" /usr/local/shinken/etc/shinken-specific.cfg
+	define module {
+	  modules logsqlite
+	  host *
+	  module_type livestatus
+	  module_name Livestatus
+	  port 50000
+	}
+	root@shinken:~# netstat -nlp|grep 50000
+	tcp        0      0 0.0.0.0:50000           0.0.0.0:*               LISTEN      4237/python     
+	root@shinken:~# 
+	------------------------
+
+
+
+==> Livestatus Query to retrieve services which are either in WARNING(state=1), CRITICAL(state=2) or UNKNOWN(state=3) statuses and notifications/alerts isn't disabled. 
+
+	------------------------------
+	GET services
+	Columns: host_display_name state display_name plugin_output
+	Filter: state = 1
+	Filter: state = 2
+	Filter: state = 3
+	Or: 3
+	Filter: notifications_enabled != 0
+	------------------------------
+
+	** IMPORTANT NOTE: The spacing and newlines in this query shouldn't be ignored. The above query 
+        returns column values "Host", "Service", "Status" and "Status Information" as displayed in Shinken 
+        web GUI.
+
+	For more information about Livestatus Query language and shinken column variables refer the url's  
+        provided below,
+
+	http://mathias-kettner.de/checkmk_livestatus.html
+	https://github.com/shinken-monitoring/mod-livestatus/blob/master/module/mapping.py
+	http://www.shinken-monitoring.org/wiki/livestatus_shinken
+
+
+==> The "shinkenlivestatus.py" python script establishes a local socket connection to port 50000 (livestatus  
+    service port) and sends the Livestatus query to retrieve the desired output. The output is parsed and  
+    from it the regular expression pattern file (patterns.regex) as well as the sysdoc text files(as of now) 
+    are generated. 
+
+    This script can be executed anywhere from inside the network. 
+
+    ** IMPORTANT NOTE: The alerts displayed by this script can be viewed from, 
+    ------------------------------------------------------------
+    Shinken >> Current Status >> Problems >> Services(Unhandled)
+    ------------------------------------------------------------
+
+==> ** IMP: The "patterns.regex" file will contain each and every unique alerts for all hosts. We need to 
+    manually modify regular expression pattern for services/alerts which can be grouped.
